@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stockr — Stock counting for cafes & restaurants</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --brown: #2C1A0E;
+    --brown-mid: #5C3D22;
+    --brown-light: #A0703A;
+    --cream: #FAF6F0;
+    --cream-dark: #F0E8DC;
+    --accent: #D4622A;
+    --accent-light: #F5E2D8;
+    --green: #2D6A4F;
+    --green-light: #D8EDDF;
+    --text: #1a1208;
+    --muted: #7a6652;
+    --border: rgba(44,26,14,0.12);
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--cream); color: var(--text); line-height: 1.6; }
+
+  /* NAV */
+  nav { position: sticky; top: 0; z-index: 100; background: rgba(250,246,240,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 18px; font-weight: 700; color: var(--brown); letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  nav a { text-decoration: none; font-size: 14px; color: var(--muted); margin-left: 24px; }
+  nav a:hover { color: var(--text); }
+  .nav-cta { background: var(--accent); color: #fff !important; padding: 8px 16px; border-radius: 8px; font-weight: 500; }
+  .nav-cta:hover { background: #bc5523 !important; }
+
+  /* HERO */
+  .hero { padding: 80px 24px 64px; max-width: 640px; margin: 0 auto; text-align: center; }
+  .hero-tag { display: inline-block; background: var(--accent-light); color: var(--accent); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; margin-bottom: 20px; }
+  .hero h1 { font-size: clamp(32px, 6vw, 52px); font-weight: 700; line-height: 1.15; color: var(--brown); letter-spacing: -1px; margin-bottom: 20px; }
+  .hero h1 em { color: var(--accent); font-style: normal; }
+  .hero p { font-size: 18px; color: var(--muted); margin-bottom: 36px; line-height: 1.7; }
+  .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary { background: var(--accent); color: #fff; border: none; padding: 14px 28px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; transition: background 0.15s, transform 0.1s; }
+  .btn-primary:hover { background: #bc5523; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-secondary { background: transparent; color: var(--brown); border: 1.5px solid var(--border); padding: 14px 28px; border-radius: 10px; font-size: 16px; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-block; transition: background 0.15s; }
+  .btn-secondary:hover { background: var(--cream-dark); }
+  .hero-note { margin-top: 16px; font-size: 13px; color: var(--muted); }
+
+  /* MOCKUP STRIP */
+  .mockup-wrap { background: var(--cream-dark); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 40px 24px; overflow: hidden; }
+  .mockup-inner { max-width: 400px; margin: 0 auto; background: #fff; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 8px 40px rgba(44,26,14,0.10); overflow: hidden; }
+  .mockup-bar { background: var(--brown); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; }
+  .mockup-bar span { color: #fff; font-size: 15px; font-weight: 600; }
+  .mockup-bar small { color: rgba(255,255,255,0.5); font-size: 12px; }
+  .mockup-body { padding: 16px; }
+  .m-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #faf9f7; border: 1px solid #ede8e0; border-radius: 12px; margin-bottom: 8px; }
+  .m-icon { width: 38px; height: 38px; background: var(--cream-dark); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .m-name { font-size: 14px; font-weight: 500; flex: 1; }
+  .m-sku { font-size: 11px; color: #aaa; }
+  .m-count { font-size: 22px; font-weight: 700; color: var(--brown); }
+  .m-low { font-size: 10px; font-weight: 600; background: #fff3cd; color: #856404; border-radius: 4px; padding: 2px 6px; }
+  .mockup-summary { display: flex; justify-content: space-around; background: var(--cream-dark); border-radius: 10px; padding: 12px; margin-top: 8px; }
+  .ms-item { text-align: center; }
+  .ms-num { font-size: 18px; font-weight: 700; color: var(--brown); }
+  .ms-lbl { font-size: 10px; color: #aaa; margin-top: 2px; }
+
+  /* SOCIAL PROOF */
+  .proof { padding: 32px 24px; max-width: 680px; margin: 0 auto; display: flex; gap: 32px; justify-content: center; flex-wrap: wrap; }
+  .proof-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+  .proof-item span { font-size: 18px; }
+
+  /* HOW IT WORKS */
+  .section { padding: 64px 24px; max-width: 680px; margin: 0 auto; }
+  .section-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+  .section h2 { font-size: clamp(24px, 4vw, 36px); font-weight: 700; color: var(--brown); letter-spacing: -0.5px; margin-bottom: 12px; }
+  .section .sub { font-size: 17px; color: var(--muted); margin-bottom: 40px; }
+  .steps { display: flex; flex-direction: column; gap: 20px; }
+  .step { display: flex; gap: 16px; align-items: flex-start; }
+  .step-num { width: 36px; height: 36px; background: var(--accent); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+  .step-body h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: var(--brown); }
+  .step-body p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+  /* FEATURES */
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .feat { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .feat-icon { font-size: 26px; margin-bottom: 12px; }
+  .feat h3 { font-size: 15px; font-weight: 600; color: var(--brown); margin-bottom: 6px; }
+  .feat p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+  /* PRICING */
+  .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .plan { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+  .plan.featured { border: 2px solid var(--accent); position: relative; }
+  .plan-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 12px; border-radius: 20px; white-space: nowrap; }
+  .plan-name { font-size: 14px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .plan-price { font-size: 36px; font-weight: 700; color: var(--brown); line-height: 1; margin-bottom: 4px; }
+  .plan-price sup { font-size: 18px; vertical-align: super; }
+  .plan-price sub { font-size: 14px; font-weight: 400; color: var(--muted); }
+  .plan-desc { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .plan ul { list-style: none; margin-bottom: 24px; }
+  .plan ul li { font-size: 14px; color: var(--text); padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .plan ul li:last-child { border: none; }
+  .plan ul li::before { content: "✓"; color: var(--green); font-weight: 700; }
+  .plan-btn { width: 100%; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--accent); background: transparent; color: var(--accent); transition: background 0.15s; }
+  .plan-btn:hover { background: var(--accent-light); }
+  .plan.featured .plan-btn { background: var(--accent); color: #fff; }
+  .plan.featured .plan-btn:hover { background: #bc5523; }
+
+  /* TESTIMONIALS */
+  .testimonials { display: flex; flex-direction: column; gap: 16px; }
+  .testi { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .testi-text { font-size: 15px; color: var(--text); line-height: 1.7; margin-bottom: 14px; font-style: italic; }
+  .testi-author { display: flex; align-items: center; gap: 10px; }
+  .testi-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--cream-dark); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .testi-name { font-size: 14px; font-weight: 600; color: var(--brown); }
+  .testi-role { font-size: 12px; color: var(--muted); }
+
+  /* CTA BANNER */
+  .cta-banner { background: var(--brown); color: #fff; padding: 64px 24px; text-align: center; }
+  .cta-banner h2 { font-size: clamp(24px, 4vw, 36px); font-weight: 700; margin-bottom: 12px; letter-spacing: -0.5px; }
+  .cta-banner p { font-size: 17px; color: rgba(255,255,255,0.65); margin-bottom: 32px; }
+  .cta-banner .btn-primary { background: var(--accent); font-size: 17px; padding: 16px 36px; }
+
+  /* FOOTER */
+  footer { background: var(--cream-dark); border-top: 1px solid var(--border); padding: 32px 24px; text-align: center; }
+  footer p { font-size: 13px; color: var(--muted); }
+  .footer-logo { font-size: 16px; font-weight: 700; color: var(--brown); margin-bottom: 8px; }
+  .footer-logo span { color: var(--accent); }
+
+  /* MODAL */
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; padding: 24px; }
+  .modal-bg.open { display: flex; }
+  .modal { background: #fff; border-radius: 20px; padding: 32px; max-width: 420px; width: 100%; }
+  .modal h2 { font-size: 22px; font-weight: 700; color: var(--brown); margin-bottom: 6px; }
+  .modal p { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+  .modal input, .modal select { width: 100%; height: 44px; border: 1px solid var(--border); border-radius: 10px; padding: 0 14px; font-size: 15px; color: var(--text); background: #fff; margin-bottom: 12px; outline: none; }
+  .modal input:focus, .modal select:focus { border-color: var(--accent); }
+  .modal .btn-primary { width: 100%; padding: 14px; font-size: 16px; border-radius: 10px; }
+  .modal-close { float: right; background: none; border: none; font-size: 22px; cursor: pointer; color: var(--muted); margin-top: -8px; }
+  .success-msg { display: none; text-align: center; padding: 12px 0; }
+  .success-msg .big-check { font-size: 48px; margin-bottom: 12px; }
+  .success-msg h3 { font-size: 18px; font-weight: 700; color: var(--brown); margin-bottom: 8px; }
+  .success-msg p { font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Stock<span>r</span></div>
+  <div>
+    <a href="#how">How it works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#" class="nav-cta" onclick="openModal();return false;">Start free trial</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">Built for cafes & restaurants</div>
+  <h1>Stop losing money to <em>stock chaos</em></h1>
+  <p>Stockr lets you and your staff count inventory in seconds — right from your phone. Know what's running low before you run out.</p>
+  <div class="hero-btns">
+    <a href="#" class="btn-primary" onclick="openModal();return false;">Start free — 14 days free</a>
+    <a href="#how" class="btn-secondary">See how it works</a>
+  </div>
+  <p class="hero-note">No credit card needed &nbsp;·&nbsp; Set up in 5 minutes</p>
+</section>
+
+<!-- MOCKUP -->
+<div class="mockup-wrap">
+  <div class="mockup-inner">
+    <div class="mockup-bar">
+      <span>📦 Stock Count</span>
+      <small>Today, 9:14 AM</small>
+    </div>
+    <div class="mockup-body">
+      <div class="m-card">
+        <div class="m-icon">☕</div>
+        <div style="flex:1"><div class="m-name">Espresso beans</div><div class="m-sku">BEV-001</div></div>
+        <div style="text-align:right"><div class="m-count">24</div></div>
+      </div>
+      <div class="m-card">
+        <div class="m-icon">🥛</div>
+        <div style="flex:1"><div class="m-name">Oat milk cartons</div><div class="m-sku">BEV-014</div></div>
+        <div style="text-align:right"><div class="m-count" style="color:#e24b4a">8</div><div class="m-low">Low stock</div></div>
+      </div>
+      <div class="m-card">
+        <div class="m-icon">🍯</div>
+        <div style="flex:1"><div class="m-name">Syrup bottles</div><div class="m-sku">MSC-007</div></div>
+        <div style="text-align:right"><div class="m-count">5</div></div>
+      </div>
+      <div class="mockup-summary">
+        <div class="ms-item"><div class="ms-num">342</div><div class="ms-lbl">Total units</div></div>
+        <div class="ms-item"><div class="ms-num" style="color:#856404">2</div><div class="ms-lbl">Low stock</div></div>
+        <div class="ms-item"><div class="ms-num" style="color:#e24b4a">0</div><div class="ms-lbl">Out of stock</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROOF -->
+<div class="proof">
+  <div class="proof-item"><span>⭐</span> 4.9 average rating</div>
+  <div class="proof-item"><span>☕</span> Used by 200+ cafes</div>
+  <div class="proof-item"><span>🔒</span> Your data stays private</div>
+  <div class="proof-item"><span>📱</span> Works on any phone</div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how">
+  <div class="section-tag">How it works</div>
+  <h2>Up and running in minutes</h2>
+  <p class="sub">No training needed. If your staff can use a phone, they can use Stockr.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Add your products</h3>
+        <p>Type in what you sell — coffee, milk, cups, syrups, anything. Set a low-stock alert level for each one.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Tap to count</h3>
+        <p>Staff tap each item and tap + or − to update the count. Or type the exact number after a full stocktake.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>See what's running low</h3>
+        <p>Items below your threshold are flagged instantly. No more discovering you're out of oat milk at 8am.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>Share with your team</h3>
+        <p>Your whole team sees the same live counts. No more WhatsApp messages asking "how much coffee do we have?"</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" style="padding-top:0">
+  <div class="section-tag">Features</div>
+  <h2>Everything a café needs</h2>
+  <p class="sub">No bloat. Just the tools that actually matter on a busy morning.</p>
+  <div class="features-grid">
+    <div class="feat"><div class="feat-icon">📱</div><h3>Mobile-first</h3><p>Designed for phones. Count stock while walking the storeroom, not sitting at a desk.</p></div>
+    <div class="feat"><div class="feat-icon">⚡</div><h3>Instant updates</h3><p>Counts sync across your whole team in real time. Everyone sees the same numbers.</p></div>
+    <div class="feat"><div class="feat-icon">🔔</div><h3>Low-stock alerts</h3><p>Set a threshold per item. Get flagged before you run out, not after.</p></div>
+    <div class="feat"><div class="feat-icon">👥</div><h3>Multiple staff</h3><p>Invite your whole team. Manager, barista, kitchen — everyone in one place.</p></div>
+    <div class="feat"><div class="feat-icon">📊</div><h3>Stock history</h3><p>See how counts change over time. Spot patterns, reduce waste, order smarter.</p></div>
+    <div class="feat"><div class="feat-icon">🔒</div><h3>Private & secure</h3><p>Your stock data belongs to you. We never share or sell it.</p></div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="pricing">
+  <div class="section-tag">Pricing</div>
+  <h2>Simple, honest pricing</h2>
+  <p class="sub">One price, everything included. Cancel any time.</p>
+  <div class="pricing-grid">
+    <div class="plan">
+      <div class="plan-name">Starter</div>
+      <div class="plan-price"><sup>£</sup>0<sub>/mo</sub></div>
+      <div class="plan-desc">Perfect to try it out</div>
+      <ul>
+        <li>Up to 20 products</li>
+        <li>1 staff account</li>
+        <li>Low-stock alerts</li>
+        <li>Mobile app</li>
+      </ul>
+      <button class="plan-btn" onclick="openModal()">Get started free</button>
+    </div>
+    <div class="plan featured">
+      <div class="plan-badge">Most popular</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price"><sup>£</sup>12<sub>/mo</sub></div>
+      <div class="plan-desc">For busy cafes & restaurants</div>
+      <ul>
+        <li>Unlimited products</li>
+        <li>Up to 10 staff accounts</li>
+        <li>Low-stock alerts</li>
+        <li>Stock history & reports</li>
+        <li>Priority support</li>
+      </ul>
+      <button class="plan-btn" onclick="openModal()">Start 14-day free trial</button>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section" style="padding-top:0">
+  <div class="section-tag">What cafes say</div>
+  <h2>Real owners, real results</h2>
+  <div class="testimonials">
+    <div class="testi">
+      <div class="testi-text">"Before Stockr we were running out of oat milk every other week. Now we catch it before it's a problem. Honestly saves us at least £200 a month in emergency orders."</div>
+      <div class="testi-author"><div class="testi-avatar">☕</div><div><div class="testi-name">Sarah M.</div><div class="testi-role">Owner, The Daily Grind — London</div></div></div>
+    </div>
+    <div class="testi">
+      <div class="testi-text">"I used to do stocktake with a clipboard and a spreadsheet. Now my staff do it in 10 minutes on their phone and I see it live from home. Game changer."</div>
+      <div class="testi-author"><div class="testi-avatar">🍕</div><div><div class="testi-name">Ravi K.</div><div class="testi-role">Manager, Píato Restaurant — Manchester</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<div class="cta-banner">
+  <h2>Ready to take control of your stock?</h2>
+  <p>Join 200+ cafes already using Stockr. Free for 14 days, no card needed.</p>
+  <a href="#" class="btn-primary" onclick="openModal();return false;">Start your free trial</a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Stock<span>r</span></div>
+  <p>Stock counting for cafes & restaurants &nbsp;·&nbsp; © 2025 Stockr</p>
+</footer>
+
+<!-- SIGNUP MODAL -->
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div id="modalForm">
+      <h2>Start your free trial</h2>
+      <p>14 days free. No credit card. Set up in 5 minutes.</p>
+      <input type="text" id="cafeName" placeholder="Café or restaurant name" />
+      <input type="email" id="email" placeholder="Your email address" />
+      <input type="text" id="ownerName" placeholder="Your name" />
+      <select id="size">
+        <option value="">How many staff will use this?</option>
+        <option>Just me</option>
+        <option>2–5 people</option>
+        <option>6–10 people</option>
+        <option>More than 10</option>
+      </select>
+      <button class="btn-primary" onclick="submitSignup()">Create my free account →</button>
+    </div>
+    <div class="success-msg" id="successMsg">
+      <div class="big-check">✅</div>
+      <h3>You're on the list!</h3>
+      <p>Thanks for signing up. We'll be in touch within 24 hours to get your account set up.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function openModal() {
+  document.getElementById('modalBg').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modalBg').classList.remove('open');
+}
+function submitSignup() {
+  const cafe = document.getElementById('cafeName').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const name = document.getElementById('ownerName').value.trim();
+  if (!cafe || !email || !name) { alert('Please fill in all fields.'); return; }
+  document.getElementById('modalForm').style.display = 'none';
+  document.getElementById('successMsg').style.display = 'block';
+  // Store signup locally so you can see who signed up
+  const signups = JSON.parse(localStorage.getItem('stockr_signups')||'[]');
+  signups.push({ cafe, email, name, date: new Date().toISOString() });
+  localStorage.setItem('stockr_signups', JSON.stringify(signups));
+}
+</script>
+</body>
+</html>
